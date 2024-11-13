@@ -20,6 +20,8 @@ class UserController extends Controller
 
     public function store(SignupRequest $request){
 
+        $validated = $request->validated();
+
         $user =  new User();
         $user->name = $request->name;
         $user->username = $request->username;
@@ -27,7 +29,8 @@ class UserController extends Controller
         $user->password = bcrypt($request->password);
         $user->save();
 
-        return redirect('users')->with('message','تم حفظ بيانات المستخدم');
+
+        return redirect('users',compact('validated'))->with('message','تم حفظ بيانات المستخدم');
     }
 
     public function update(Request $request){

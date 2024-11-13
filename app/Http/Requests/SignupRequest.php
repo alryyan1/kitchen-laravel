@@ -22,10 +22,19 @@ class SignupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'=>'required|string',
-            'username'=>'required|string|min:6|unique:users',
-            'password'=>'required|confirmed|min:6',
-            'user_type'=>'required|in:admin,staff',
+            'name'=>['required','string'],
+            'username'=>['required','string','min:6','unique:users'],
+            'password'=>['required','confirmed','min:6'],
+            'user_type'=>['required','in:admin,staff'],
+
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'username.min'=>"إسم المستخدم يجب ان يحتوي على 6 أحرف أو أرقام",
+            'password.min'=>"كلمة المرور يجب ان تحتوي على 6 أحرف أو أرقام",
 
         ];
     }

@@ -139,7 +139,7 @@
 
                         </div>
                         <div class="modal-footer justify-content-between" style="display: flex; justify-content:space-between;">
-                            <button type="button" class="btn btn-primary float-start" data-bs-dismiss="modal">إلغاء</button>
+                            <button type="button" class="btn btn-primary float-start" data-dismiss="modal">إلغاء</button>
                             <input type="submit" value="تعديل" class="btn btn-warning float-end">
                         </div>
                     </form>
@@ -182,14 +182,22 @@
                 </div>
 
                 <div class="col-lg-4 arabic">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <form method="post" action="createUSer">
                         @csrf
                         <div class="form-group">
                             <label class="form-label"><i class='text-danger'>*</i> الإسم </label>
                             <input type="text" class="form-control" name="name" required>
                             @error('name')
-                            قيمة الحقل غير صحيحة
-                            @enderror
+                            {{ $message }}                            @enderror
                         </div>
                         <div class="form-group">
                             <label class="form-label"><i class='text-danger'>*</i> إسم المستخدم </label>
