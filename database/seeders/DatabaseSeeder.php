@@ -41,5 +41,9 @@ class DatabaseSeeder extends Seeder
         $this->call(SettingsTableSeeder::class);
         $this->call(ServicesTableSeeder::class);
         $this->call(ChildMealsTableSeeder::class);
+        $this->call(RoutesTableSeeder::class);
+        $this->call(SubRoutesTableSeeder::class);
+        $this->call(UserRoutesTableSeeder::class);
+        $this->call(UserSubRoutesTableSeeder::class);
     }
 }
