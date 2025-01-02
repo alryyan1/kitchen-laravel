@@ -6,6 +6,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RequestedChildMealController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 Route::apiResource('meals', MealController::class);
 Route::apiResource('costs',\App\Http\Controllers\CostController::class);
+Route::post('getAllCosts',[\App\Http\Controllers\CostController::class,'getAllCosts']);
 Route::apiResource('CostCategories',\App\Http\Controllers\CostCategoryController::class);
 Route::apiResource('orderMeals',\App\Http\Controllers\OrderMealsController::class);
 Route::post('RequestedChild/{orderMeal}',[RequestedChildMealController::class,'store']);
@@ -79,3 +81,6 @@ Route::get('fileNames',[MealController::class,'getFileNamesFromPublicFolder']);
 Route::post('sendMsgWa/{order}',[\App\Http\Controllers\WaController::class,'sendMsg']);
 Route::post('sendMsgWaLocation/{order}',[\App\Http\Controllers\WaController::class,'sendLocation']);
 Route::post('sendMsgWaDocument/{order}',[\App\Http\Controllers\WaController::class,'senDocument']);
+Route::middleware('auth:sanctum')-> patch('routes',[UserController::class,'editRoutes']);
+Route::middleware('auth:sanctum')-> patch('subRoutes',[UserController::class,'editSubRoutesRoutes']);
+Route::middleware('auth:sanctum')-> get('routes',[UserController::class,'routes']);

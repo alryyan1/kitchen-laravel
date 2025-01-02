@@ -47,6 +47,14 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Settings whereAuthorizedPhones($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Settings whereInstance($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Settings whereToken($value)
+ * @property string $address
+ * @property string $cr
+ * @property string $vatin
+ * @property string $phone
+ * @method static \Illuminate\Database\Eloquent\Builder|Settings whereAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Settings whereCr($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Settings wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Settings whereVatin($value)
  * @mixin \Eloquent
  */
 class Settings extends Model

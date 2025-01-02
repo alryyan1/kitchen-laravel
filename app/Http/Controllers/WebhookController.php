@@ -26,8 +26,9 @@ class WebHookController extends Controller
             $from_sms =  str_replace("@", "", $from_sms);
             $settings = Settings::first();
             $phone_numbers =   explode(',', $settings->authorized_phones);
+                            $array = collect($phone_numbers);
+
             if ($msg == '1') {
-                $array = collect($phone_numbers);
                 if ($array->contains($from_sms)) {
                     # code...
 

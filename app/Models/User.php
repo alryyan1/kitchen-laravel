@@ -50,6 +50,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder|User role($roles, $guard = null, $without = false)
  * @method static \Illuminate\Database\Eloquent\Builder|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder|User withoutRole($roles, $guard = null)
+ * @property-read mixed $is_admin
  * @mixin \Eloquent
  */
 class User extends Authenticatable
@@ -76,6 +77,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+    protected $with = ['roles','routes','sub_routes'];
 
     /**
      * The attributes that should be cast.
@@ -85,4 +87,15 @@ class User extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
     ];
+    protected $appends = ['isAdmin'];
+    public function getIsAdminAttribute()
+    {
+        return $this->hasRole('admin');
+    }
+    public function routes(){
+        return $this->hasMany(UserRoute::class);
+     }
+     public function sub_routes(){
+        return $this->hasMany(UserSubRoute::class);
+    }
 }

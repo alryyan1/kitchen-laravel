@@ -63,7 +63,7 @@ class PDFController extends Controller
     }
 
 
-    public function orders(Request $request,$from_sms = false)
+    public function orders(Request $request, $from_sms = false)
     {
 
 
@@ -174,7 +174,127 @@ class PDFController extends Controller
 
         if ($from_sms) {
             $result_as_bs64 = $pdf->output('name.pdf', 'S');
-            return   Whatsapp::sendPdf($result_as_bs64, $from_sms,true);
+            return   Whatsapp::sendPdf($result_as_bs64, $from_sms, true);
+            //  $wa = new WaController();
+            //  $wa->sendDocument($request,$result_as_bs64);
+        }
+
+        $pdf->Ln();
+
+        $pdf->Output('example_003.pdf', 'I');
+    }
+    public function expenses(Request $request, $from_sms = false)
+    {
+
+
+        $pdf = new Pdf('l', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        $pdf->setFontSubsetting(true);
+        $pdf->setCompression(true);
+
+        $lg = array();
+        $lg['a_meta_charset'] = 'UTF-8';
+        $lg['a_meta_dir'] = 'rtl';
+        $lg['a_meta_language'] = 'fa';
+        $lg['w_page'] = 'page';
+        $pdf->setLanguageArray($lg);
+        $pdf->setCreator(PDF_CREATOR);
+        $pdf->setAuthor('Nicola Asuni');
+        $pdf->setTitle('المصروفات');
+        $pdf->setSubject('TCPDF Tutorial');
+        $pdf->setKeywords('TCPDF, PDF, example, test, guide');
+        $pdf->setHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, PDF_HEADER_TITLE, PDF_HEADER_STRING);
+        $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+        $pdf->setFooterFont(array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+        $pdf->setDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+        $pdf->setMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+        $pdf->setHeaderMargin(PDF_MARGIN_HEADER);
+        $pdf->setFooterMargin(PDF_MARGIN_FOOTER);
+        $pdf->setAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+        $pdf->setFont('times', 'BI', 12);
+        $pdf->AddPage();
+        $page_width = $pdf->getPageWidth() - PDF_MARGIN_LEFT - PDF_MARGIN_RIGHT;
+        $fontname = TCPDF_FONTS::addTTFfont(public_path('arial.ttf'));
+        $pdf->setFont($fontname, '', 12);
+
+        $date = new Carbon('now');
+        $date = $date->format('Y/m/d');
+        $pdf->head = function () use ($pdf, $date) {
+            $pdf->Cell(30, 5, $date, 1, 0, 'C');
+        };
+
+        $img = public_path('logo.png');
+        //        dd($img);
+        //        $pdf->Image($img,25,5,20,20);
+        $pdf->setFont($fontname, '', 22);
+        $settings = Settings::first();
+
+        $pdf->Cell($page_width, 5, $settings?->kitchen_name, 0, 1, 'C');
+        $pdf->Cell($page_width, 5, 'المصروفات', 0, 1, 'C');
+        $pdf->Ln();
+        $pdf->setFont($fontname, 'b', 16);
+        $pdf->setFillColor(0, 0, 0);
+        $col = $page_width / 5;
+        if(!$request->get('first')){
+
+        $pdf->Cell(20, 5, 'التاريخ ', 0, 0, 'C', fill: 0);
+        
+        $pdf->Cell(25, 5, $date, 0, 1, 'C');
+        }else{
+            $pdf->Cell(20, 5, 'من ', 0, 0, 'C', fill: 0);
+            $pdf->Cell(25, 5, $request->get('first'), 0, 1, 'C');
+            $pdf->Cell(20, 5, 'الي ', 0, 0, 'C', fill: 0);
+            $pdf->Cell(25, 5, $request->get('second'), 0, 1, 'C');
+        }
+        $pdf->Ln();
+        $pdf->setFont($fontname, 'b', 10);
+
+        $pdf->Cell($col , 5, ' Id', 1, 0, 'C', 0);
+        $pdf->Cell($col , 5, 'Description', 1, 0, 'C', 0);
+        $pdf->Cell($col , 5, 'Category', 1, 0, 'C', 0);
+        $pdf->Cell($col , 5, 'Amount', 1, 0, 'C', 0);
+        $pdf->Cell($col , 5, 'Date', 1, 1, 'C', 0);
+       
+        $query = Cost::query();
+       
+        $query->when($request->query('first'),function($q) use($request){
+            $first = $request->query('first');
+            $second = $request->query('second');
+            $first_carbon = Carbon::parse($first);
+            $second_carbon = Carbon::parse($second);
+            return $q->whereRaw('Date(created_at) between  ? and ?', [$first_carbon->format('Ymd'),$second_carbon->format('Ymd')]);
+        });
+        if(!$request->get('first')){
+            $query->whereDate('created_at', Carbon::now()->format('Y-m-d'));
+        }
+        $costs =  $query->get();
+        // dd($costs);
+        /** @var Cost $cost */
+        foreach ($costs as $cost) {
+            // echo $cost->description .'<br/>';
+            $y = $pdf->GetY();
+
+            $pdf->Line(15, $y, $page_width + 15, $y);
+            $pdf->Cell($col , 5, $cost->id, 0, 0, 'C', 0);
+            $pdf->Cell($col , 5, $cost->description, 0, 0, 'C', 0);
+            $pdf->Cell($col , 5, $cost?->costCategory?->name, 0, 0, 'C', 0);
+            $pdf->Cell($col , 5, $cost?->amount, 0, 0, 'C', 0);
+            $pdf->Cell($col , 5, $cost?->created_at->format('Y-m-d'), 0, 1, 'C', 0);
+            $y = $pdf->GetY();
+
+            // $pdf->Line(15, $y, $page_width + 15, $y);
+        }
+
+        $pdf->Ln();
+
+      
+
+
+
+
+
+        if ($from_sms) {
+            $result_as_bs64 = $pdf->output('name.pdf', 'S');
+            return   Whatsapp::sendPdf($result_as_bs64, $from_sms, true);
             //  $wa = new WaController();
             //  $wa->sendDocument($request,$result_as_bs64);
         }
@@ -258,8 +378,9 @@ class PDFController extends Controller
         $pdf->Cell($col, 5, 'Date', 1, 0, 'C', 0);
         $pdf->Cell($col, 5, 'Total', 1, 0, 'C', 0);
         $pdf->Cell($col, 5, 'Paid', 1, 0, 'C', 0);
-        $pdf->Cell($col, 5, 'Discount', 1, 0, 'C', 0);
+        $pdf->Cell($col, 5, 'Expenses', 1, 0, 'C', 0);
         $pdf->Cell($col, 5, 'Orders', 1, 1, 'C', 0);
+
         while ($day_of_month <= $to) {
             $new_data = [];
             // echo  "start".$day_of_month .'<br>';
@@ -268,13 +389,15 @@ class PDFController extends Controller
             $begin_of_day = $day_of_month->copy()->format('Y-m-d');;
             $data =  Order::whereRaw("DATE(created_at) = ? ", [$begin_of_day])
                 ->get();
+             $costs  =    Cost::whereRaw("DATE(created_at) = ? ", [$begin_of_day]);
+            $expense =   $costs->sum('amount');
             $total_sales = 0;
             $total_discount = 0;
             $total_paid = 0;
             $count = 0;
             /** @var Order $d */
 
-            if ($data->count() > 0) {
+            // if ($data->count() > 0) {
                 foreach ($data as $d) {
 
                     $total_sales += $d->totalPrice();
@@ -290,12 +413,14 @@ class PDFController extends Controller
                     'paid' => $total_paid,
                     'discount' => $total_discount,
                     'count' => $count,
+                    'expense' => $expense
                 ]);
-            };
+            // };
 
 
-            $day_of_month->addDay(1);
+            $day_of_month->addDay();
         }
+        $total_expense = 0;
 
         // dd($outter);
         $total = 0;
@@ -306,19 +431,22 @@ class PDFController extends Controller
             $pdf->Cell($col, 5, $data['name'], 1, 0, 'C', 0);
             $pdf->Cell($col, 5, $data['sales'], 1, 0, 'C', 0);
             $pdf->Cell($col, 5, $data['paid'], 1, 0, 'C', 0);
-            $pdf->Cell($col, 5, $data['discount'], 1, 0, 'C', 0);
+            $pdf->Cell($col, 5, $data['expense'], 1, 0, 'C', 0);
             $pdf->Cell($col, 5, $data['count'], 1, 1, 'C', 0);
             $total += $data['sales'];
             $paid +=  $data['paid'];
             $count += $data['count'];
+            $expense += $data['expense'];
         }
         $pdf->Ln();
 
         $pdf->Cell($col, 5, '', 1, 0, 'C', 0);
         $pdf->Cell($col, 5, $total, 1, 0, 'C', 0);
         $pdf->Cell($col, 5, $paid, 1, 0, 'C', 0);
-        $pdf->Cell($col, 5, '', 1, 0, 'C', 0);
+        $pdf->Cell($col, 5, $expense, 1, 0, 'C', 0);
         $pdf->Cell($col, 5, $count, 1, 1, 'C', 0);
+        $pdf->Ln();
+        $pdf->Cell($page_width, 5, 'Profits  '.$paid -$expense .' OMR', 1, 1, 'C', 0);
 
 
 
@@ -327,7 +455,7 @@ class PDFController extends Controller
         $pdf->Ln();
         if ($from_sms) {
             $result_as_bs64 = $pdf->output('name.pdf', 'S');
-            return   Whatsapp::sendPdf($result_as_bs64, $from_sms,true);
+            return   Whatsapp::sendPdf($result_as_bs64, $from_sms, true);
             // return;
             //  $wa = new WaController();
             //  $wa->sendDocument($request,$result_as_bs64);
@@ -384,7 +512,7 @@ class PDFController extends Controller
         $pdf->SetFont($arial, '', 7, '', true);
         //        $pdf->Cell(60,5,$order->created_at->format('Y/m/d H:i A'),0,1);
 
-        $pdf->Ln(25);
+        $pdf->Ln(20);
 
         $pdf->Cell($page_width, 5, $settings->hospital_name, 0, 1, 'C');
         //        $pdf->Cell($page_width,5,'مسقط - عمان',0,1,'C');
@@ -462,30 +590,30 @@ class PDFController extends Controller
             //            $pdf->SetLineStyle(array('width' => 0.1, 'dash' => '3,3', 'color' => array(0, 0, 0)));
 
             // $pdf->SetFillColor(187, 222, 251); // Light red fill
-            $pdf->Cell(5, 5, $index, 1, 0, fill: 0, stretch: 1);
+            $pdf->Cell(5, 5, $index, 0, 0, fill: 0, stretch: 1);
             $colWidth = $page_width / 3;
-            $pdf->Cell($colWidth * 2.3, 5, $orderMeal->meal->name, 1, 0, fill: 0);
+            $pdf->Cell($colWidth * 2.3, 5, $orderMeal->meal->name, 0, 0, fill: 0);
             //            $pdf->Cell($colWidth/2,5,' ','TB',0,fill: 1);
-            $pdf->Cell(($colWidth / 2) - 0.5, 5, $orderMeal->quantity, 1, 1, fill: 0, align: 'C');
+            $pdf->Cell(($colWidth / 2) - 0.5, 5, $orderMeal->quantity, 0, 1, fill: 0, align: 'C');
             $colWidth = $page_width / 3;
             //
-            $pdf->Cell($colWidth * 2, 5, 'Item ', 'B', 0, fill: 0);
-            $pdf->Cell($colWidth / 2, 5, ' ', 'B', 0, fill: 0);
-            $pdf->Cell($colWidth / 2, 5, 'Price ', 'B', 1, fill: 0);
+            $pdf->Cell($colWidth * 2, 5, 'Service ', '', 0, fill: 0);
+            $pdf->Cell($colWidth / 2, 5, 'U.price', '', 0, fill: 0);
+            $pdf->Cell($colWidth / 2, 5, 'Total ', '', 1, fill: 0);
             //            $pdf->Ln();
             /** @var RequestedChildMeal $requestedChildMeal */
             foreach ($orderMeal->requestedChildMeals as $requestedChildMeal) {
-                $pdf->Cell($colWidth * 2, 5, $requestedChildMeal->childMeal->service->name, 'B', 0, fill: 0);
+                $pdf->Cell($colWidth * 2, 5, $requestedChildMeal->childMeal->service->name, '', 0, fill: 0);
                 //                $pdf->Cell($colWidth/2,5,'','B',0,fill: 0); //comment this line if using del-pasta
-                $pdf->Cell($colWidth / 2, 5, '', 'B', 0, fill: 0); //del pasta
-                $pdf->Cell($colWidth / 2, 5, $requestedChildMeal->price, 'B', 1, fill: 0, align: 'C');
+                $pdf->Cell($colWidth / 2, 5, $requestedChildMeal->price, 'B', 0, fill: 0); //del pasta
+                $pdf->Cell($colWidth / 2, 5, $requestedChildMeal->price * $orderMeal->quantity, '', 1, fill: 0, align: 'C');
             }
             $index++;
             $pdf->Ln();
         }
         //
 
-        $pdf->Ln();
+        // $pdf->Ln();
         $style = array(
             'position' => 'C',
             'align' => 'C',
@@ -526,40 +654,21 @@ class PDFController extends Controller
         $pdf->Cell($cols, 5, $order->totalPrice(), 'TB', 0, 'C', 0);
         $pdf->Cell($cols, 5, 'Total', 'TB', 1, 'C', fill: 0);
         $pdf->SetFont($arial, '', 10, '', true);
-
-        $pdf->Cell($cols, 5, 'التخفيض', 'TB', 0, 'C', fill: 0);
-        $pdf->Cell($cols, 5, $order->discount, 'TB', 0, 'C', 0);
-        $pdf->Cell($cols, 5, 'Discount', 'TB', 1, 'C', fill: 0);
-        //
-
-
-
-
-        //        $pdf->Cell($cols,5,'الدفع','TB',0 ,'C',fill: 0);
-        //        $pdf->Cell($cols,5,$order->payment_type ,'TB' ,0,'C',0);
-        //
-        //        $pdf->Cell($cols ,5,'Payment','TB' ,1,'C',fill: 0);
-        //        $pdf->Cell($cols,5,' التوصيل','TB',0,'C',fill: 0);
-        //        $pdf->Cell($cols,5,$order->is_delivery ? 'نعم':'لا' ,'TB'  ,0,'C',0);
-
-
-        //        $pdf->Cell($cols ,5,'Delivery','TB',1,'C',fill: 0);
+        if ($order->discount > 0) {
+            $pdf->Cell($cols, 5, 'التخفيض', 'TB', 0, 'C', fill: 0);
+            $pdf->Cell($cols, 5, $order->discount, 'TB', 0, 'C', 0);
+            $pdf->Cell($cols, 5, 'Discount', 'TB', 1, 'C', fill: 0);
+        }
         if ($order->is_delivery) {
             $pdf->Cell($page_width, 5, '' . $order->delivery_address, 0, 1, 'C');
         }
-        $pdf->Cell($page_width, 5, '' . $order->notes, 0, 1, 'C');
-
         $y = $pdf->GetY();
-
-
-
-
-
         $col = $page_width / 2;
         //        $pdf->Cell($col,5,'CR'.$settings->cr,0,0,'C');
-        //        $pdf->Cell($col,5,'GSM'.$settings->phone,0,1,'C');
+        $pdf->Cell($page_width, 5, $settings->phone, 0, 1, 'C');
         //        $pdf->Cell($col,5,'Email:'.$settings->email,0,0,'C');
-        //        $pdf->Cell( $col,5,$settings->address.'  Address',0,1,'C');
+        $pdf->Cell($page_width, 5, $settings->address , 0, 1, 'C');
+        $pdf->Cell($page_width, 5, 'نسعد بخدمتكم معنا' , 0, 1, 'C');
 
 
         if ($wb) {

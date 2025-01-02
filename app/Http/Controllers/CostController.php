@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cost;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CostController extends Controller
@@ -13,6 +14,22 @@ class CostController extends Controller
     public function index()
     {
         return Cost::all();
+    }
+
+    public function getAllCosts(Request $request)
+    {
+        $first = $request->get('first');
+        $second = $request->get('second');
+        $first_carbon = Carbon::parse($first);
+        $second_carbon = Carbon::parse($second);
+        $query = Cost::query();
+        $query->when($request->get('date'),function($q) use($request){
+            return $q->whereDate('created_at', $request->get('date'));
+        });
+        $query->when($request->get('first'),function($q) use($first_carbon,$second_carbon){
+            return $q->whereRaw('Date(created_at) between  ? and ?', [$first_carbon->format('Ymd'),$second_carbon->format('Ymd')]);
+        });
+        return $query->get();
     }
 
     /**
@@ -37,7 +54,7 @@ class CostController extends Controller
         ]);
 
         $data  = Cost::create($request->all());
-       return ['status'=>$data,'data'=>$data] ;
+       return ['status'=>$data,'data'=>$data->load('costCategory')] ;
     }
 
     /**

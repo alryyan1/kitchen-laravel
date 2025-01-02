@@ -29,6 +29,7 @@ Route::get('/', function () {
 Route::get('/orders',[\App\Http\Controllers\PDFController::class,'orders']);
 Route::get('/month',[\App\Http\Controllers\PDFController::class,'month']);
 Route::get('/print',[\App\Http\Controllers\PDFController::class,'printSale']);
+Route::get('/cost',[\App\Http\Controllers\PDFController::class,'expenses']);
 
 //users
 Route::get('/users',[UserController::class,'create']);
