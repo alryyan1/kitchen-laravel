@@ -234,12 +234,12 @@ class PDFController extends Controller
         $pdf->setFont($fontname, 'b', 16);
         $pdf->setFillColor(0, 0, 0);
         $col = $page_width / 5;
-        if(!$request->get('first')){
+        if (!$request->get('first')) {
 
-        $pdf->Cell(20, 5, 'التاريخ ', 0, 0, 'C', fill: 0);
-        
-        $pdf->Cell(25, 5, $date, 0, 1, 'C');
-        }else{
+            $pdf->Cell(20, 5, 'التاريخ ', 0, 0, 'C', fill: 0);
+
+            $pdf->Cell(25, 5, $date, 0, 1, 'C');
+        } else {
             $pdf->Cell(20, 5, 'من ', 0, 0, 'C', fill: 0);
             $pdf->Cell(25, 5, $request->get('first'), 0, 1, 'C');
             $pdf->Cell(20, 5, 'الي ', 0, 0, 'C', fill: 0);
@@ -248,22 +248,22 @@ class PDFController extends Controller
         $pdf->Ln();
         $pdf->setFont($fontname, 'b', 10);
 
-        $pdf->Cell($col , 5, ' Id', 1, 0, 'C', 0);
-        $pdf->Cell($col , 5, 'Description', 1, 0, 'C', 0);
-        $pdf->Cell($col , 5, 'Category', 1, 0, 'C', 0);
-        $pdf->Cell($col , 5, 'Amount', 1, 0, 'C', 0);
-        $pdf->Cell($col , 5, 'Date', 1, 1, 'C', 0);
-       
+        $pdf->Cell($col, 5, ' Id', 1, 0, 'C', 0);
+        $pdf->Cell($col, 5, 'Description', 1, 0, 'C', 0);
+        $pdf->Cell($col, 5, 'Category', 1, 0, 'C', 0);
+        $pdf->Cell($col, 5, 'Amount', 1, 0, 'C', 0);
+        $pdf->Cell($col, 5, 'Date', 1, 1, 'C', 0);
+
         $query = Cost::query();
-       
-        $query->when($request->query('first'),function($q) use($request){
+
+        $query->when($request->query('first'), function ($q) use ($request) {
             $first = $request->query('first');
             $second = $request->query('second');
             $first_carbon = Carbon::parse($first);
             $second_carbon = Carbon::parse($second);
-            return $q->whereRaw('Date(created_at) between  ? and ?', [$first_carbon->format('Ymd'),$second_carbon->format('Ymd')]);
+            return $q->whereRaw('Date(created_at) between  ? and ?', [$first_carbon->format('Ymd'), $second_carbon->format('Ymd')]);
         });
-        if(!$request->get('first')){
+        if (!$request->get('first')) {
             $query->whereDate('created_at', Carbon::now()->format('Y-m-d'));
         }
         $costs =  $query->get();
@@ -274,11 +274,11 @@ class PDFController extends Controller
             $y = $pdf->GetY();
 
             $pdf->Line(15, $y, $page_width + 15, $y);
-            $pdf->Cell($col , 5, $cost->id, 0, 0, 'C', 0);
-            $pdf->Cell($col , 5, $cost->description, 0, 0, 'C', 0);
-            $pdf->Cell($col , 5, $cost?->costCategory?->name, 0, 0, 'C', 0);
-            $pdf->Cell($col , 5, $cost?->amount, 0, 0, 'C', 0);
-            $pdf->Cell($col , 5, $cost?->created_at->format('Y-m-d'), 0, 1, 'C', 0);
+            $pdf->Cell($col, 5, $cost->id, 0, 0, 'C', 0);
+            $pdf->Cell($col, 5, $cost->description, 0, 0, 'C', 0);
+            $pdf->Cell($col, 5, $cost?->costCategory?->name, 0, 0, 'C', 0);
+            $pdf->Cell($col, 5, $cost?->amount, 0, 0, 'C', 0);
+            $pdf->Cell($col, 5, $cost?->created_at->format('Y-m-d'), 0, 1, 'C', 0);
             $y = $pdf->GetY();
 
             // $pdf->Line(15, $y, $page_width + 15, $y);
@@ -286,7 +286,7 @@ class PDFController extends Controller
 
         $pdf->Ln();
 
-      
+
 
 
 
@@ -389,7 +389,7 @@ class PDFController extends Controller
             $begin_of_day = $day_of_month->copy()->format('Y-m-d');;
             $data =  Order::whereRaw("DATE(created_at) = ? ", [$begin_of_day])
                 ->get();
-             $costs  =    Cost::whereRaw("DATE(created_at) = ? ", [$begin_of_day]);
+            $costs  =    Cost::whereRaw("DATE(created_at) = ? ", [$begin_of_day]);
             $expense =   $costs->sum('amount');
             $total_sales = 0;
             $total_discount = 0;
@@ -398,23 +398,23 @@ class PDFController extends Controller
             /** @var Order $d */
 
             // if ($data->count() > 0) {
-                foreach ($data as $d) {
+            foreach ($data as $d) {
 
-                    $total_sales += $d->totalPrice();
-                    $total_paid += $d->amount_paid;
-                    $total_discount += $d->discount;
+                $total_sales += $d->totalPrice();
+                $total_paid += $d->amount_paid;
+                $total_discount += $d->discount;
 
-                    $count++;
-                }
+                $count++;
+            }
 
-                array_push($outter, [
-                    'name' => $day_of_month->format('d'),
-                    'sales' => $total_sales,
-                    'paid' => $total_paid,
-                    'discount' => $total_discount,
-                    'count' => $count,
-                    'expense' => $expense
-                ]);
+            array_push($outter, [
+                'name' => $day_of_month->format('d'),
+                'sales' => $total_sales,
+                'paid' => $total_paid,
+                'discount' => $total_discount,
+                'count' => $count,
+                'expense' => $expense
+            ]);
             // };
 
 
@@ -446,7 +446,7 @@ class PDFController extends Controller
         $pdf->Cell($col, 5, $expense, 1, 0, 'C', 0);
         $pdf->Cell($col, 5, $count, 1, 1, 'C', 0);
         $pdf->Ln();
-        $pdf->Cell($page_width, 5, 'Profits  '.$paid -$expense .' OMR', 1, 1, 'C', 0);
+        $pdf->Cell($page_width, 5, 'Profits  ' . $paid - $expense . ' OMR', 1, 1, 'C', 0);
 
 
 
@@ -648,17 +648,23 @@ class PDFController extends Controller
             $pdf->Cell($cols, 5, $order->delivery_fee, 'TB', 0, 'C', 0);
             $pdf->Cell($cols, 5, 'Delivery Fee', 'TB', 1, 'C', fill: 0);
         }
-        $pdf->SetFont($arial, 'b', 15, '', true);
+        // $pdf->SetFont($arial, 'b', 15, '', true);
 
         $pdf->Cell($cols, 5, 'المجموع', 'TB', 0, 'C', fill: 0);
         $pdf->Cell($cols, 5, $order->totalPrice(), 'TB', 0, 'C', 0);
-        $pdf->Cell($cols, 5, 'Total', 'TB', 1, 'C', fill: 0);
+        $pdf->Cell($cols, 5, 'Sub total', 'TB', 1, 'C', fill: 0);
         $pdf->SetFont($arial, '', 10, '', true);
         if ($order->discount > 0) {
             $pdf->Cell($cols, 5, 'التخفيض', 'TB', 0, 'C', fill: 0);
             $pdf->Cell($cols, 5, $order->discount, 'TB', 0, 'C', 0);
             $pdf->Cell($cols, 5, 'Discount', 'TB', 1, 'C', fill: 0);
         }
+        if ($order->discount > 0) {
+            $pdf->Cell($cols, 5, 'اجمالي', 'TB', 0, 'C', fill: 0);
+            $pdf->Cell($cols, 5, $order->totalPrice() - $order->discount, 'TB', 0, 'C', 0);
+            $pdf->Cell($cols, 5, 'Grand total', 'TB', 1, 'C', fill: 0);
+        }
+
         if ($order->is_delivery) {
             $pdf->Cell($page_width, 5, '' . $order->delivery_address, 0, 1, 'C');
         }
@@ -667,8 +673,8 @@ class PDFController extends Controller
         //        $pdf->Cell($col,5,'CR'.$settings->cr,0,0,'C');
         $pdf->Cell($page_width, 5, $settings->phone, 0, 1, 'C');
         //        $pdf->Cell($col,5,'Email:'.$settings->email,0,0,'C');
-        $pdf->Cell($page_width, 5, $settings->address , 0, 1, 'C');
-        $pdf->Cell($page_width, 5, 'نسعد بخدمتكم معنا' , 0, 1, 'C');
+        $pdf->Cell($page_width, 5, $settings->address, 0, 1, 'C');
+        $pdf->Cell($page_width, 5, 'نسعد بخدمتكم معنا', 0, 1, 'C');
 
 
         if ($wb) {

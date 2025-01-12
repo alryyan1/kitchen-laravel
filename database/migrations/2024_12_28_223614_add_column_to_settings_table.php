@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('settings', function (Blueprint $table) {
-            $table->string('authorized_phones');
-            $table->string('token');
-            $table->string('instance');
+            $table->string('authorized_phones')->nullable();
+            $table->string('token')->nullable();
+            $table->string('instance')->nullable();
         });
     }
 
